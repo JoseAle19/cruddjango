@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .container {
+        margin-top: 100px;
+      }
+
+      .card {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-header {
+        background-color: #007bff;
+        color: #fff;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .btn-primary {
+        background-color: #007bff;
+        border: none;
+        width: 100%;
+      }
+
+      .btn-primary:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">Iniciar Sesión</div>
+            <div class="card-body">
+              {% if error_message %}
+              <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+              </div>
+              {% endif %}
+              <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="username">Usuario:</label>
+                  <input
+                    id="username"
+                    type="text"
+                    class="form-control"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="password">Contraseña:</label>
+                  <input
+                    type="password"
+                    id="pass"
+                    class="form-control"
+                    name="pass"
+                    required
+                  />
+                </div>
+                <button id="save" class="btn btn-primary">
+                  Iniciar Sesión
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            console.log("El HTML se ha cargado completamente.");
+    
+            const user = localStorage.getItem('user');
+            if (user) {
+                window.location.href = '{% url "crear_usuarios" %}';
+            }
+    
+            $("#save").click(function (e) {
+                e.preventDefault(); // Prevenir el envío tradicional del formulario
+    
+                // Obtener datos del formulario
+                let username = $("#username").val();
+                let pass = $("#pass").val();
+    
+                if (username === "" || pass === "") {
+                    Swal.fire({
+                        icon:  "error",
+                        title: 'Oops! Algunos campos están vacíos',
+                        showConfirmButton: false,
+                        timer: 2000,
+                    });
+                } else {
+                    $.ajax({
+                        type: "POST",
+                        url: '{% url "login" %}',
+                        data: {
+                            username: username,
+                            pass: pass,
+                            csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+                        },
+                        success: function (data) {
+                            // Mostrar SweetAlert en lugar de la alerta predeterminada
+                            Swal.fire({
+                                icon: data.status ? "success" : "error",
+                                title: data.message,
+                                showConfirmButton: true,
+                            });
+                            
+                            // Redirigir a la página de crear_usuarios si la operación fue exitosa
+                            if (data.status) {
+                              saveUser(JSON.parse(data.users_str_json));
+                              window.location.href = '{% url "crear_usuarios" %}';
+                            }
+    
+                            // Limpiar los campos del formulario si la operación fue exitosa
+                            $("#username").val("");
+                            $("#pass").val("");
+                        },
+                        error: function (e) {
+                            console.log(e); // Para depuración
+                            alert("Error al realizar la solicitud.");
+                        },
+                    });
+                }
+            });
+    
+            const saveUser = (user) => {
+                localStorage.setItem('user', JSON.stringify(user[0]));
+            };
+        });
+    </script>
+    
+  </body>
+</html>

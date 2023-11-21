@@ -1,0 +1,482 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear Usuario</title>
+    {{ form.media }}
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="navbar-brand">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="bi bi-alarm"
+            width="24"
+            height="24"
+          >
+            <!-- Ajuste del tamaño con width y height -->
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+            />
+          </svg>
+          Crud usuarios con Mongodb
+        </div>
+        <div>
+          <a href="{% url 'my_account' %}" class="btn btn-primary">Mi cuenta</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="username">Nombre del Usuario</label>
+            <input
+              class="form-control"
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Nombre del Usuario"
+              required
+            />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="pass">Contraseña del Usuario</label>
+            <input
+              class="form-control"
+              id="pass"
+              name="pass"
+              type="password"
+              placeholder="Contraseña del Usuario"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="dateFrom">Fecha de Inicio</label>
+            <input
+              class="form-control"
+              id="dateFrom"
+              type="date"
+              placeholder="Fecha de Inicio"
+              min="{{currentDate}}"
+            />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="dateTo">Fecha de Fin</label>
+            <input
+              class="form-control"
+              id="dateTo"
+              type="date"
+              placeholder="Fecha de Fin"
+              min="{{currentDate}}"
+            />
+          </div>
+        </div>
+
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="flexSwitchCheckDefault"
+          />
+          <label class="form-check-label" for="flexSwitchCheckDefault"
+            >Estado de la cuenta</label
+          >
+        </div>
+        <input type="text" id="idText" style="display: none" />
+
+        <div style="display: flex; gap: 10px">
+          <button class="btn btn-primary" id="save">Guardar</button>
+          <button class="btn btn-primary" id="updateUser">Actualixar</button>
+          <button class="btn btn-danger" id="cancelUpdate">Cancelar</button>
+        </div>
+      </form>
+
+      {% comment %} tabla de forms {% endcomment %}
+      <table class="table" id="usersTable">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Contraseña</th>
+            <th scope="col">Fecha de Inicio</th>
+            <th scope="col">Fecha de Fin</th>
+            <th scope="col">Estado de la cuenta</th>
+            <th scope="col">acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td style="display: none">{{ user.id }}</td>
+            <td>{{ user.login }}</td>
+            <td>{{ user.password }}</td>
+            <td>{{ user.fecIni }}</td>
+            <td>{{ user.fecFin }}</td>
+            <td>
+              {% if user.EdoCta %}
+              <p style="color: green; display: flex; align-items: center">
+                Activo
+                <span
+                  style="
+                    width: 10px;
+                    height: 10px;
+                    background-color: green;
+                    border-radius: 50%;
+                    display: inline-block;
+                  "
+                ></span>
+              </p>
+
+              {% else %}
+
+              <p style="color: red; display: flex; align-items: center">
+                Inactivo
+                <span
+                  style="
+                    width: 10px;
+                    height: 10px;
+                    background-color: red;
+                    border-radius: 50%;
+                    display: inline-block;
+                  "
+                ></span>
+              </p>
+              {% endif %}
+            </td>
+
+            <td style="display: flex; gap: 2px">
+              <button
+                type="button"
+                class="btn btn-warning btnEditar"
+                id="btnEditar1"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger btnEliminar"
+                id="btnEliminar"
+              >
+                Elimnar
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      const user = localStorage.getItem("user");
+      let isEditing = false; // Declarar la variable isEditing aquí
+
+      if (!user) {
+        redirectToLoginPage();
+      }
+
+      document
+        .getElementById("save")
+        .addEventListener("click", function (event) {
+          handleSaveButtonClick(event);
+        });
+
+      document
+        .getElementById("cancelUpdate")
+        .addEventListener("click", function (event) {
+          handleCancelUpdateButtonClick(event);
+        });
+
+      $("#usersTable").on("click", ".btnEditar, .btnEliminar", function () {
+        handleEditDeleteButtonClick($(this));
+      });
+
+      // Obtener la fecha actual en formato YYYY-MM-DD
+      var currentDate = new Date().toISOString().split("T")[0];
+      // Establecer la fecha mínima permitida en el campo de fecha
+      document.getElementById("dateTo").min = currentDate;
+      document.getElementById("dateFrom").min = currentDate;
+
+      $(document).ready(function () {
+        updateButtonsDisplay();
+        $("#save").click(function (e) {
+          e.preventDefault();
+          handleAjaxRequest();
+        });
+
+        $("#updateUser").click(function (e) {
+          e.preventDefault();
+          handleAjaxRequestUpdate();
+        });
+      });
+
+      function redirectToLoginPage() {
+        window.location.href = '{% url "login" %}';
+      }
+
+      function handleSaveButtonClick(event) {
+        let username = document.getElementById("username").value;
+        let pass = document.getElementById("pass").value;
+        let date1 = document.getElementById("dateFrom").value;
+        let date2 = document.getElementById("dateTo").value;
+        let estado = document.getElementById("flexSwitchCheckDefault").checked;
+
+        if (!username || !pass || !date1 || !date2) {
+          event.preventDefault();
+          displayErrorAlert(
+            "Campos requeridos",
+            "Por favor, completa todos los campos obligatorios."
+          );
+        }
+      }
+
+      function handleCancelUpdateButtonClick(event) {
+        event.preventDefault();
+        isEditing = false;
+        resetFormFields();
+      }
+
+      function handleEditDeleteButtonClick(button) {
+        let botonID = button.attr("id");
+        let numero = botonID.replace(/\D/g, "");
+        let fila = button.closest("tr");
+
+        let id = fila.find("td:eq(0)").text();
+        let login = fila.find("td:eq(1)").text();
+        let password = fila.find("td:eq(2)").text();
+        let fecIni = fila.find("td:eq(3)").text();
+        let fecFin = fila.find("td:eq(4)").text();
+        let estado = fila.find("td:eq(5) p").text().trim();
+        if (button.attr("id") === "btnEliminar") {
+          handleAjaxRequestDelete(id);
+        } else {
+          populateFormFields(id, login, password, fecIni, fecFin, estado);
+
+          isEditing = true;
+
+          updateButtonsDisplay();
+        }
+      }
+
+      function resetFormFields() {
+        document.getElementById("idText").value = "";
+        document.getElementById("username").value = "";
+        document.getElementById("pass").value = "";
+        document.getElementById("dateFrom").value = "";
+        document.getElementById("dateTo").value = "";
+        document.getElementById("flexSwitchCheckDefault").checked = false;
+        updateButtonsDisplay();
+      }
+
+      function populateFormFields(id, login, password, fecIni, fecFin, estado) {
+        document.getElementById("idText").value = id;
+        document.getElementById("username").value = login;
+        document.getElementById("pass").value = password;
+        document.getElementById("dateFrom").value = fecIni;
+        document.getElementById("dateTo").value = fecFin;
+        document.getElementById("flexSwitchCheckDefault").checked =
+          estado.toString() === "Activo" ? true : false;
+      }
+
+      function updateButtonsDisplay() {
+        if (isEditing) {
+          document.getElementById("save").style.display = "none";
+          document.getElementById("updateUser").style.display = "block";
+          document.getElementById("cancelUpdate").style.display = "block";
+        } else {
+          document.getElementById("save").style.display = "block";
+          document.getElementById("updateUser").style.display = "none";
+          document.getElementById("cancelUpdate").style.display = "none";
+        }
+      }
+
+      function displayErrorAlert(title, text) {
+        Swal.fire({
+          icon: "error",
+          title: title,
+          text: text,
+        });
+      }
+
+      //Elimnar un usuario
+      function handleAjaxRequestDelete(id) {
+        $.ajax({
+          type: "DELETE",
+          url: '{% url "crear_usuarios" %}',
+          contentType: "application/json; charset=utf-8", // Indicar que se está enviando JSON
+          data: JSON.stringify({
+            id: id,
+            csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+          }),
+          beforeSend: function (xhr) {
+            xhr.setRequestHeader(
+              "X-CSRFToken",
+              $("input[name=csrfmiddlewaretoken]").val()
+            );
+          },
+          success: function (data) {
+            isEditing = false;
+            updateButtonsDisplay();
+            displayAjaxResponse(data);
+          },
+          error: function (e) {
+            console.log(e);
+            alert("Error al realizar la solicitud.");
+          },
+        });
+      }
+      // para actualizar el usuario
+      function handleAjaxRequestUpdate(event) {
+        let username = $("#username").val();
+        let date1 = $("#dateFrom").val();
+        let date2 = $("#dateTo").val();
+        let pass = $("#pass").val();
+        let estado = $("#flexSwitchCheckDefault").prop("checked");
+        let id = $("#idText").val();
+        console.log(id);
+        $.ajax({
+          type: "PUT",
+          url: '{% url "crear_usuarios" %}',
+          contentType: "application/json; charset=utf-8", // Indicar que se está enviando JSON
+          data: JSON.stringify({
+            username: username,
+            id: id,
+            pass: pass,
+            dateFrom: date1,
+            dateTo: date2,
+            edoCta: estado,
+            csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+          }),
+          beforeSend: function (xhr) {
+            xhr.setRequestHeader(
+              "X-CSRFToken",
+              $("input[name=csrfmiddlewaretoken]").val()
+            );
+          },
+          success: function (data) {
+            isEditing = false;
+            updateButtonsDisplay();
+            displayAjaxResponse(data);
+          },
+          error: function (e) {
+            console.log(e);
+            alert("Error al realizar la solicitud.");
+          },
+        });
+      }
+
+      function handleAjaxRequest() {
+        let username = $("#username").val();
+        let date1 = $("#dateFrom").val();
+        let date2 = $("#dateTo").val();
+        let pass = $("#pass").val();
+        let estado = $("#flexSwitchCheckDefault").prop("checked");
+
+        if (username === "" || pass === "" || date1 === "" || date2 === "") {
+          displayErrorAlert(
+            "Oops! Algunos campos están vacíos",
+            "Por favor, completa todos los campos."
+          );
+          return;
+        }
+
+        $.ajax({
+          type: "POST",
+          url: '{% url "crear_usuarios" %}',
+          data: {
+            username: username,
+            pass: pass,
+            dateFrom: date1,
+            dateTo: date2,
+            edoCta: estado,
+            csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+          },
+          success: function (data) {
+            displayAjaxResponse(data);
+          },
+          error: function (e) {
+            console.log(e);
+            alert("Error al realizar la solicitud.");
+          },
+        });
+      }
+
+      function displayAjaxResponse(data) {
+        Swal.fire({
+          icon: data.status ? "success" : "error",
+          title: data.message,
+          showConfirmButton: false,
+          timer: 2000,
+        });
+
+        $("#username").val("");
+        $("#pass").val("");
+        $("#dateFrom").val("");
+        $("#dateTo").val("");
+        $("#flexSwitchCheckDefault").prop("checked", false);
+        //updateTable(data.users);
+        updateTable(JSON.parse(data.users_str_json));
+        resetFormFields();
+      }
+
+      function updateTable(users) {
+        $("#usersTable tbody").empty();
+
+        for (let user of users) {
+          let estado = user.EdoCta ? "Activo" : "Inactivo";
+          let color = user.EdoCta ? "green" : "red";
+
+          let row = `<tr>
+              <td style="display: none">${user.id}</td>
+              <td>${user.login}</td>
+              <td>${user.password}</td>
+              <td>${user.fecIni}</td>
+              <td>${user.fecFin}</td>
+              <td>
+                <p style="color: ${color}; display: flex; align-items: center;">
+                  ${estado}
+                  <span style="width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-left: 5px; display: inline-block;"></span>
+                </p>
+              </td>
+              <td style="display: flex; gap: 2px">
+                <button type="button" class="btn btn-warning btnEditar" id="btnEditar1">Editar</button>
+                <button type="button" class="btn btn-danger btnEliminar" id="btnEliminar">Eliminar</button>
+              </td>
+          </tr>`;
+          $("#usersTable tbody").append(row);
+        }
+      }
+    </script>
+  </body>
+</html>

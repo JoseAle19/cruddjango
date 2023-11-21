@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Información de Mi Cuenta</title>
+    <!-- Enlace al archivo CSS de Bootstrap -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Mi Cuenta</a>
+      </nav>
+    </header>
+
+    <div class="container mt-4">
+      <h1 class="mb-4">Información de Mi Cuenta</h1>
+
+      <div class="card">
+        {% csrf_token %}
+
+        <div class="card-body">
+          <h5 class="card-title">Detalles de la Cuenta</h5>
+          <p class="card-text">
+            <strong>Nombre del Usuario:</strong> <p id='user'> </p>
+          </p>
+          <p class="card-text">
+            <strong>Nombre del Usuario:</strong> <p id='user'> </p>
+          </p>
+        <div>
+          <p class="card-text">
+            <strong>Contraseña:</strong> <p id='pass'> </p>
+            <input type="text" id='newPass' placeholder='Nueva Contraseña' class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" >
+          </p>
+          <button id='btnEdit' type="button" class="btn btn-primary">Cambiar Contraseña</button>
+          <button  style="display:none" id='btnSaveEdit' type="button" class="btn btn-primary">Guardar cambios</button>
+        </div>
+
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-4">
+      <div class="text-center">
+        <p>&copy; 2023 Mi Empresa. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <!-- Enlaces a los archivos JavaScript y jQuery de Bootstrap -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+    if (!localStorage.getItem('user')) {
+        redirectToLoginPage();
+      }
+      function redirectToLoginPage() {
+        window.location.href = '{% url "login" %}';
+      }
+
+      
+      $(document).ready(function () {
+
+//get user local localStorage.
+        const userLocal =  JSON.parse(localStorage.getItem('user'));
+
+        let isEditing = false;
+        const btnEdit = document.getElementById('btnEdit');
+
+        const newPass = document.getElementById('newPass');
+        const pass = document.getElementById('pass');
+        const user = document.getElementById('user');
+        
+        user.innerHTML = userLocal.login;
+        pass.innerHTML = userLocal.password;
+        newPass.value = userLocal.password;
+        newPass.style.display = 'none';
+        
+        btnEdit.addEventListener('click', () => {
+          isEditing = true;
+          btnEdit.style.display = 'none';
+          btnSaveEdit.style.display = 'block';
+          newPass.style.display = 'block';
+          
+        });
+        btnSaveEdit.addEventListener('click', () => {
+          let newPassword = newPass.value;
+          $.ajax({
+            type: "PUT",
+            url: '{% url "crear_usuarios" %}',
+            data: JSON.stringify({
+              id: userLocal.id,
+              pass: newPassword,
+              username: userLocal.login,
+              dateFrom: userLocal.fecIni,
+              dateTo: userLocal.fecFin,
+              edoCta: userLocal.EdoCta,
+              
+              // Puedes enviar otros datos relacionados con la contraseña si es necesario
+              csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+            },),
+            beforeSend: function (xhr) {
+
+              xhr.setRequestHeader(
+                "X-CSRFToken",
+                $("input[name=csrfmiddlewaretoken]").val()
+              );
+            },
+            success: function (data) {
+              if (data.status) {
+                Swal.fire({
+                  title: "Contraseña cambiada correctamente.",
+                  icon: "success",
+                  confirmButtonText: "Aceptar",
+                  showConfirmButton: true,
+                });
+                redirectToLoginPage();
+                //Eliminar el usuario del localStorage
+                localStorage.removeItem('user');
+                
+              } else {
+                console.log(data);
+                Swal.fire({
+                  title: "Error al cambiar Contraseña.",
+                  icon: "error",
+                  confirmButtonText: "Aceptar",
+                  showConfirmButton: true,
+                });
+              }
+            },
+            
+            error: function (e) {
+              console.log(e);
+              alert("Error al realizar la solicitud.");
+            },
+          });
+        });
+      });
+      
+    </script>
+  </body>
+</html>
